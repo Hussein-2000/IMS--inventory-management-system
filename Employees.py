@@ -104,6 +104,10 @@ class Employee:
         self.employeeTable = ttk.Treeview(emp_frame, columns=("Emp id", "name", "email", "gender", "contact","dob", "doj", "pass", "U type", "adress", "salary"), yscrollcommand=scrolly.set, xscrollcommand=scrollx.set)
         scrollx.pack(side=BOTTOM, fill=X)
         scrolly.pack(side=RIGHT, fill=Y)
+        scrollx.config(command=self.employeeTable.xview)
+        scrolly.config(command=self.employeeTable.yview)
+
+
         self.employeeTable.heading("Emp id", text="Emp ID")
         self.employeeTable.heading("name", text="Name")
         self.employeeTable.heading("email", text="E-mail")
