@@ -1,6 +1,6 @@
 from tkinter import*
 from PIL import Image, ImageTk #What can pillow library do? ANSWER: The Pillow library contains all the basic image processing functionality. You can do image resizing, rotation and transformation 
-from Employees import Employee 
+from Employees import *
 
 # CLOURS===========
 Black = "#393646"

@@ -1,7 +1,8 @@
 from tkinter import*
 from PIL import Image, ImageTk #What can pillow library do? ANSWER: The Pillow library contains all the basic image processing functionality. You can do image resizing, rotation and transformation 
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from dashboard import *
+import sqlite3
 
 
 class Employee:
@@ -84,13 +85,14 @@ class Employee:
         lbl_adress = Label(self.root, text="Adress", font=("Oregon", 15), bg="white").place(x = 50, y = 270)
         lbl_Salary = Label(self.root, text="SAlary", font=("Oregon", 15), bg="white").place(x = 500, y = 270)
 
-        self.txt_adress = Text(self.root,font=("Oregon", 15), bg="light Blue").place(x = 150, y = 270    , width=300 , height=60)
+        self.txt_adress = Text(self.root,font=("Oregon", 15), bg="light Blue")
+        self.txt_adress.place(x = 150, y = 270    , width=300 , height=60)
         txt_Salary = Entry(self.root, textvariable=self.var_salary,font=("Oregon", 15), bg="light Blue").place(x = 600, y = 270   , width=180)
 
 
         # ========= BUTTONS==========
-        btn_add =  Button(self.root, text="Save" ,font=("Signika", 15), bg="#2196f3", fg='white', cursor="hand2").place(x= 500, y = 305, width=110, height=28)
-        btn_Update =  Button(self.root, text="Update" ,font=("Signika", 15), bg="#4caf50", fg='white', cursor="hand2").place(x= 620, y = 305, width=110, height=28)
+        btn_add =  Button(self.root, text="Save", command=self.add ,font=("Signika", 15), bg="#2196f3", fg='white', cursor="hand2").place(x= 500, y = 305, width=110, height=28)
+        btn_Update =  Button(self.root,command=self.show , text="Update" ,font=("Signika", 15), bg="#4caf50", fg='white', cursor="hand2").place(x= 620, y = 305, width=110, height=28)
         btn_Delete =  Button(self.root, text="Delete" ,font=("Signika", 15), bg="lightblue", fg='white', cursor="hand2").place(x= 740, y = 305, width=110, height=28)
         btn_Clear =  Button(self.root, text="Clear" ,font=("Signika", 15), bg="#607d8b", fg='white', cursor="hand2").place(x= 860, y = 305, width=110, height=28)
 
@@ -101,14 +103,14 @@ class Employee:
         scrolly = Scrollbar(emp_frame, orient=VERTICAL)
         scrollx = Scrollbar(emp_frame, orient=HORIZONTAL)
 
-        self.employeeTable = ttk.Treeview(emp_frame, columns=("Emp id", "name", "email", "gender", "contact","dob", "doj", "pass", "U type", "adress", "salary"), yscrollcommand=scrolly.set, xscrollcommand=scrollx.set)
+        self.employeeTable = ttk.Treeview(emp_frame, columns=("Eid", "name", "email", "gender", "contact","dob", "doj", "pass", "Utype", "adress", "salary"), yscrollcommand=scrolly.set, xscrollcommand=scrollx.set)
         scrollx.pack(side=BOTTOM, fill=X)
         scrolly.pack(side=RIGHT, fill=Y)
         scrollx.config(command=self.employeeTable.xview)
         scrolly.config(command=self.employeeTable.yview)
 
 
-        self.employeeTable.heading("Emp id", text="Emp ID")
+        self.employeeTable.heading("Eid", text="Emp ID")
         self.employeeTable.heading("name", text="Name")
         self.employeeTable.heading("email", text="E-mail")
         self.employeeTable.heading("gender", text="Gender")
@@ -116,13 +118,13 @@ class Employee:
         self.employeeTable.heading("dob", text="D.O.B")
         self.employeeTable.heading("doj", text="D.O.J")
         self.employeeTable.heading("pass", text="Pass")
-        self.employeeTable.heading("U type", text="User type")
+        self.employeeTable.heading("Utype", text="User type")
         self.employeeTable.heading("adress", text="Adress")
         self.employeeTable.heading("salary", text="Salary")
 
         self.employeeTable["show"] = "headings"
 
-        self.employeeTable.column("Emp id", width=90)
+        self.employeeTable.column("Eid", width=90)
         self.employeeTable.column("name", width=100)
         self.employeeTable.column("email", width=100)
         self.employeeTable.column("gender", width=100)
@@ -130,16 +132,60 @@ class Employee:
         self.employeeTable.column("dob", width=100)
         self.employeeTable.column("doj", width=100)
         self.employeeTable.column("pass", width=100)
-        self.employeeTable.column("U type", width=100)
+        self.employeeTable.column("Utype", width=100)
         self.employeeTable.column("adress", width=100)
         self.employeeTable.column("salary", width=100)
 
         self.employeeTable.pack(fill=BOTH, expand=1)
 
+        self.show()
+# ===========================================================================================================
+    def add(self):
+        con =sqlite3.connect(database=r'ims.db')
+        cur = con.cursor()
+        try:
+            if self.var_emp_id.get() == "":
+                messagebox.showerror("Error", "Employee ID must be required", parent=self.root )
+            else:
+                cur.execute("SELECT * FROM employee WHERE Eid=?", (self.var_emp_id.get(),))
+                row = cur.fetchone()
+                if row != None:
+                    messagebox.showerror("Error", "This Employee ID already assigned, try different", parent=self.root)
+                else:
+                    cur.execute("INSERT INTO Employee(Eid,name,email,gender,contact,dob,doj,pass,Utype,adress,salary) VALUES (?,?,?,?,?,?,?,?,?,?,?)", (
+                                self.var_emp_id.get(),
+                                self.var_name.get(),
+                                self.var_email.get(),
+                                self.var_gender.get(),
+                                self.var_contact.get(),
+                                self.var_dob.get(),
+                                self.var_doj.get(),
+                                self.var_pass.get(),
+                                self.var_UserType.get(),
+                                self.txt_adress.get('1.0', END),
+                                self.var_salary.get()
+                    ))
+                    con.commit()
+                    messagebox.showinfo("Sucess", "Employee added auccessfully", parent=self.root)
+                    self.show()
+        except Exception as ex:
+            messagebox.showerror('Error', f"Error due to : {str(ex)}", parent=self.root)
+
+
+    def show(self):
+        con =sqlite3.connect(database=r'ims.db')
+        cur = con.cursor()
+        try:
+            cur.execute("SELECT * FROM EMPLOYEE ")
+            rows = cur.fetchall()
+            self.employeeTable.delete(*self.employeeTable.get_children())
+            for row in rows:
+                self.employeeTable.insert('', END, values=row)
 
 
 
-
+        except Exception as ex:
+            messagebox.showerror('Error', f"Error due to : {str(ex)}", parent=self.root)
 
 
 
